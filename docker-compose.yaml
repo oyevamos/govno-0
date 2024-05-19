@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:13
+    volumes:
+      - ./migration/create.sql:/docker-entrypoint-initdb.d/create.sql
+    environment:
+      POSTGRES_DB: "govno"
+      POSTGRES_USER: "govno"
+      POSTGRES_PASSWORD: "govno"
+    ports:
+      - "5437:5432"
