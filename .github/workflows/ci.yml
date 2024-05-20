@@ -10,9 +10,24 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: govno
+          POSTGRES_PASSWORD: govno
+          POSTGRES_DB: govno
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5437:5432
+
     steps:
       - uses: actions/checkout@v4
 
@@ -23,6 +38,9 @@ jobs:
 
       - name: Build
         run: go build -v ./...
+
+      - name: Run migrations
+        run: make migrateup
 
       - name: Test
         run: make test
