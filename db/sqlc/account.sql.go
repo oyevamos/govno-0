@@ -34,7 +34,7 @@ func (q *Queries) AddAccountBalance(ctx context.Context, arg AddAccountBalancePa
 	return i, err
 }
 
-const createAccount = `-- name: createUser :one
+const createAccount = `-- name: CreateAccount :one
 INSERT INTO accounts (
     owner,
     balance,

@@ -7,22 +7,22 @@ import (
 	"github.com/google/uuid"
 )
 
-// Different types of error returned by the VerifyToken function
+// Ошибки, связанные с токеном
 var (
 	ErrInvalidToken = errors.New("token is invalid")
 	ErrExpiredToken = errors.New("token has expired")
 )
 
-// Payload contains the payload data of the token
+// Payload содержит данные токена
 type Payload struct {
 	ID        uuid.UUID `json:"id"`
 	Username  string    `json:"username"`
 	Role      string    `json:"role"`
 	IssuedAt  time.Time `json:"issued_at"`
-	ExpiredAt time.Time `json:"expired_at"`
+	ExpiresAt time.Time `json:"expires_at"` // Поле ExpiresAt вместо ExpiredAt
 }
 
-// NewPayload creates a new token payload with a specific username and duration
+// NewPayload создает новый payload для конкретного пользователя и длительности
 func NewPayload(username string, role string, duration time.Duration) (*Payload, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
@@ -34,14 +34,14 @@ func NewPayload(username string, role string, duration time.Duration) (*Payload,
 		Username:  username,
 		Role:      role,
 		IssuedAt:  time.Now(),
-		ExpiredAt: time.Now().Add(duration),
+		ExpiresAt: time.Now().Add(duration),
 	}
 	return payload, nil
 }
 
-// Valid checks if the token payload is valid or not
+// Valid проверяет, действителен ли payload токена
 func (payload *Payload) Valid() error {
-	if time.Now().After(payload.ExpiredAt) {
+	if time.Now().After(payload.ExpiresAt) {
 		return ErrExpiredToken
 	}
 	return nil

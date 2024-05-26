@@ -3,13 +3,14 @@ package db
 import (
 	"context"
 	"database/sql"
-	"github.com/oyevamos/govno0/util"
-	"github.com/stretchr/testify/require"
-	_ "github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/oyevamos/govno0/util"
+	"github.com/stretchr/testify/require"
 )
 
+// createRandomAccount создает случайный аккаунт для тестирования
 func createRandomAccount(t *testing.T) Account {
 	user := createRandomUser(t)
 
@@ -32,10 +33,12 @@ func createRandomAccount(t *testing.T) Account {
 	return account
 }
 
+// TestCreateAccount проверяет создание аккаунта
 func TestCreateAccount(t *testing.T) {
 	createRandomAccount(t)
 }
 
+// TestGetAccount проверяет получение аккаунта по ID
 func TestGetAccount(t *testing.T) {
 	account1 := createRandomAccount(t)
 	account2, err := testQueries.GetAccount(context.Background(), account1.ID)
@@ -49,6 +52,7 @@ func TestGetAccount(t *testing.T) {
 	require.WithinDuration(t, account1.CreatedAt, account2.CreatedAt, time.Second)
 }
 
+// TestUpdateAccount проверяет обновление баланса аккаунта
 func TestUpdateAccount(t *testing.T) {
 	account1 := createRandomAccount(t)
 
@@ -67,6 +71,7 @@ func TestUpdateAccount(t *testing.T) {
 	require.WithinDuration(t, account1.CreatedAt, account2.CreatedAt, time.Second)
 }
 
+// TestDeleteAccount проверяет удаление аккаунта
 func TestDeleteAccount(t *testing.T) {
 	account1 := createRandomAccount(t)
 	err := testQueries.DeleteAccount(context.Background(), account1.ID)
@@ -78,6 +83,7 @@ func TestDeleteAccount(t *testing.T) {
 	require.Empty(t, account2)
 }
 
+// TestListAccounts проверяет получение списка аккаунтов
 func TestListAccounts(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		createRandomAccount(t)

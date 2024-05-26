@@ -1,13 +1,25 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"os"
+	db "github.com/oyevamos/govno0/db/sqlc"
+	"github.com/oyevamos/govno0/token"
+	"github.com/oyevamos/govno0/util"
+	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
-func TestMain(m *testing.M) {
-	gin.SetMode(gin.TestMode)
+func newTestServer(t *testing.T, store db.Store) *Server {
+	config := util.Config{
+		TokenSymmetricKey:   "randomkeyrandomkeyrandomkeyrandom",
+		AccessTokenDuration: time.Minute,
+	}
 
-	os.Exit(m.Run())
+	tokenMaker, err := token.NewJWTMaker(config.TokenSymmetricKey)
+	require.NoError(t, err)
+
+	server, err := NewServer(config, store, tokenMaker)
+	require.NoError(t, err)
+
+	return server
 }

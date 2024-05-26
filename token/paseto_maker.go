@@ -1,11 +1,9 @@
 package token
 
 import (
-	"fmt"
-	"time"
-
-	"github.com/aead/chacha20poly1305"
+	"errors"
 	"github.com/o1egl/paseto"
+	"time"
 )
 
 // PasetoMaker is a PASETO token maker
@@ -15,16 +13,15 @@ type PasetoMaker struct {
 }
 
 // NewPasetoMaker creates a new PasetoMaker
-func NewPasetoMaker(symmetricKey string) (Maker, error) {
-	if len(symmetricKey) != chacha20poly1305.KeySize {
-		return nil, fmt.Errorf("invalid key size: must be exactly %d characters", chacha20poly1305.KeySize)
+func NewPasetoMaker(symmetricKey string) (*PasetoMaker, error) {
+	if len(symmetricKey) != 32 {
+		return nil, errors.New("invalid key size: must be exactly 32 characters")
 	}
 
 	maker := &PasetoMaker{
 		paseto:       paseto.NewV2(),
 		symmetricKey: []byte(symmetricKey),
 	}
-
 	return maker, nil
 }
 
@@ -32,11 +29,15 @@ func NewPasetoMaker(symmetricKey string) (Maker, error) {
 func (maker *PasetoMaker) CreateToken(username string, role string, duration time.Duration) (string, *Payload, error) {
 	payload, err := NewPayload(username, role, duration)
 	if err != nil {
-		return "", payload, err
+		return "", nil, err
 	}
 
 	token, err := maker.paseto.Encrypt(maker.symmetricKey, payload, nil)
-	return token, payload, err
+	if err != nil {
+		return "", nil, err
+	}
+
+	return token, payload, nil
 }
 
 // VerifyToken checks if the token is valid or not

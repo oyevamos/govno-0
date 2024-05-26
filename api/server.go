@@ -2,40 +2,43 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator/v10"
 	db "github.com/oyevamos/govno0/db/sqlc"
+	"github.com/oyevamos/govno0/token"
+	"github.com/oyevamos/govno0/util"
 )
 
+// Server serves HTTP requests for our banking service.
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	tokenMaker token.Maker
+	router     *gin.Engine
 }
 
-func NewServer(store db.Store) *Server {
-	server := &Server{store: store}
-	router := gin.Default()
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("currency", validCurrency)
+// NewServer creates a new HTTP server and setup routing.
+func NewServer(config util.Config, store db.Store, tokenMaker token.Maker) (*Server, error) {
+	server := &Server{
+		config:     config,
+		store:      store,
+		tokenMaker: tokenMaker,
 	}
 
-	router.POST("/users", server.createUser)
+	server.setupRouter()
+	return server, nil
+}
 
-	router.POST("/accounts", server.CreateAccount)
-	router.GET("/accounts/:id", server.GetAccount)
-	router.GET("/accounts", server.ListAccount)
+func (server *Server) setupRouter() {
+	router := gin.Default()
 
-	router.POST("/transfers", server.CreateTransfer)
+	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	authRoutes.POST("/accounts", server.createAccount)
+	authRoutes.GET("/accounts/:id", server.getAccount)
+	authRoutes.GET("/accounts", server.listAccounts)
 
 	server.router = router
-	return server
 }
 
+// Start runs the HTTP server on a specific address.
 func (server *Server) Start(address string) error {
 	return server.router.Run(address)
-}
-
-func errorResponse(err error) gin.H {
-	return gin.H{"error": err.Error()}
 }

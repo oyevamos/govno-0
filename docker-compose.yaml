@@ -1,12 +1,27 @@
-version: "3.9"
+version: '3.8'
+
 services:
   postgres:
     image: postgres:13
-    volumes:
-      - ./migration/create.sql:/docker-entrypoint-initdb.d/create.sql
     environment:
-      POSTGRES_DB: "govno"
-      POSTGRES_USER: "govno"
-      POSTGRES_PASSWORD: "govno"
+      POSTGRES_DB: simple_bank
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: secret
     ports:
-      - "5437:5432"
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - GIN_MODE=release
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
